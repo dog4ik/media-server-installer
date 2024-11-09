@@ -142,7 +142,7 @@ SectionEnd
 
 Section "Create Shortcuts" CreateWinShortcuts
   CreateDirectory "$SMPROGRAMS\Media Server"
-  CreateShortCut "$DESKTOP\Media Server.lnk" "$INSTDIR\media-server.exe" "--tmdb-token $%TMDB_TOKEN%" "$INSTDIR\icon.ico" 0
+  CreateShortCut "$DESKTOP\Media Server.lnk" "$INSTDIR\media-server.exe" "--tmdb-token ${TMDB_TOKEN}" "$INSTDIR\icon.ico" 0
 SectionEnd
 
 ;--------------------------------
