@@ -118,6 +118,8 @@ Section "!Media Server (required)" InstallMediaServer
 
   SetOutPath "$INSTDIR\dist"
   File "media-server-web\dist\"
+  SetOutPath "$INSTDIR\dist\assets"
+  File "media-server-web\dist\assets\"
   SetOutPath "$INSTDIR"
 
   ;Store installation folder
