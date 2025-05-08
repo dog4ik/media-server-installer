@@ -11,7 +11,7 @@ Var _EXISTINGINSTALLATION_
 Var _FOLDEREXISTS_
 
 
-!define INSTALL_DIRECTORY "$PROGRAMFILES64\MediaServer"
+!define INSTALL_DIRECTORY "$PROGRAMFILES64\media-server"
 !define INSTDIR_REG_ROOT "HKLM" ;Define root hive to use
 !define INSTDIR_REG_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaServer" ;Registry to show up in Add/Remove Programs
 
@@ -52,10 +52,10 @@ CRCCheck on ; make sure the installer wasn't corrupted while downloading
 
 ;--------------------------------
 
-!ifdef UXPATH
-!define MUI_ICON "${UXPATH}\branding\NSIS\modern-install.ico" ; Installer Icon
-!define MUI_UNICON "${UXPATH}\branding\NSIS\modern-install.ico" ; Uninstaller Icon
+!define MUI_ICON "icons\hypers.ico" ; Installer Icon
+!define MUI_UNICON "icons\sadge.ico" ; Uninstaller Icon
 
+!ifdef UXPATH
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "${UXPATH}\branding\NSIS\installer-header.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${UXPATH}\branding\NSIS\installer-right.bmp"
@@ -111,15 +111,18 @@ Section "!Media Server (required)" InstallMediaServer
 
   SetOutPath "$INSTDIR"
 
-  File icon.ico
+  File icons\icon.ico
   File media-server\target\release\media-server.exe
-  File ffmpeg\bin\ffmpeg.exe
-  File ffmpeg\bin\ffprobe.exe
+  File /r ffmpeg\bin\*.*
 
   SetOutPath "$INSTDIR\dist"
   File "media-server-web\dist\"
   SetOutPath "$INSTDIR\dist\assets"
   File "media-server-web\dist\assets\"
+
+  ; Write default configuration file
+  SetOutPath "$LOCALAPPDATA\media-server"
+  File /oname=configuration.toml "init_configuration.toml"
   SetOutPath "$INSTDIR"
 
   ;Store installation folder
@@ -131,7 +134,7 @@ Section "!Media Server (required)" InstallMediaServer
   WriteRegExpandStr HKLM "${INSTDIR_REG_KEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${INSTDIR_REG_KEY}" "DisplayIcon" '"$INSTDIR\Uninstall.exe",0'
   WriteRegStr HKLM "${INSTDIR_REG_KEY}" "Publisher" "The Media Server"
-  WriteRegStr HKLM "${INSTDIR_REG_KEY}" "URLInfoAbout" "https://github.com/dog4ik/media-server"
+  WriteRegStr HKLM "${INSTDIR_REG_KEY}" "URLInfoAbout" "https://provod.rs"
   WriteRegStr HKLM "${INSTDIR_REG_KEY}" "DisplayVersion" "0.0.1"
   WriteRegDWORD HKLM "${INSTDIR_REG_KEY}" "NoModify" 1
   WriteRegDWORD HKLM "${INSTDIR_REG_KEY}" "NoRepair" 1
@@ -142,7 +145,7 @@ SectionEnd
 
 Section "Create Shortcuts" CreateWinShortcuts
   CreateDirectory "$SMPROGRAMS\Media Server"
-  CreateShortCut "$DESKTOP\Media Server.lnk" "$INSTDIR\media-server.exe" "--tmdb-token ${TMDB_TOKEN}" "$INSTDIR\icon.ico" 0
+  CreateShortCut "$DESKTOP\Media Server.lnk" "$INSTDIR\media-server.exe" "" "$INSTDIR\icon.ico" 0
 SectionEnd
 
 ;--------------------------------
@@ -168,30 +171,16 @@ Section "Uninstall"
 
   ;TODO: Remove media server AppData/Local dirs
   DeleteData:
-  ;Try to delete only known data dir folders
-  RMDir /r /REBOOTOK "$_MEDIASERVERDATADIR_\cache"
-  RMDir /r /REBOOTOK "$_MEDIASERVERDATADIR_\config"
-  RMDir /r /REBOOTOK "$_MEDIASERVERDATADIR_\data"
-  RMDir /r /REBOOTOK "$_MEDIASERVERDATADIR_\log"
-  RMDir /r /REBOOTOK "$_MEDIASERVERDATADIR_\metadata"
-  RMDir /r /REBOOTOK "$_MEDIASERVERDATADIR_\plugins"
-  RMDir /r /REBOOTOK "$_MEDIASERVERDATADIR_\root"
-  RMDir /REBOOTOK "$_MEDIASERVERDATADIR_" ; Delete final dir only if empty
+  ; Nuke data dir
+  RMDir /r /REBOOTOK "$LOCALAPPDATA\media-server"
 
   PreserveData:
   ; noop
 
-  RMDir /r "$SMPROGRAMS\MediaServer"
+  RMDir /r "$SMPROGRAMS\media-server"
   Delete "$DESKTOP\Media Server.lnk"
 
-  Delete "$INSTDIR\Uninstall.exe"
-
-  RMDir /r /REBOOTOK "$INSTDIR\dist"
-  Delete "$INSTDIR\ffmpeg.exe"
-  Delete "$INSTDIR\ffprobe.exe"
-  Delete "$INSTDIR\icon.ico"
-  Delete "$INSTDIR\media-server.exe"
-  RMDir "$INSTDIR"
+  RMDir /r /REBOOTOK "$INSTDIR"
 
   DeleteRegKey HKLM "Software\MediaServer"
   DeleteRegKey HKLM "${INSTDIR_REG_KEY}"
